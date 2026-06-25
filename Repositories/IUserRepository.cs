@@ -1,20 +1,15 @@
-﻿using Task_Management_System.Models;
+﻿using TaskManagementApi.DTOs;
+using TaskManagementApi.Models;
 
-namespace Task_Management_System.Repositories
+namespace TaskManagementApi.Repositories;
+
+public interface IUserRepository
 {
-    public interface IUserRepository
-    {
+    List<User> GetAllUsers();
+    User? GetUserById(int userId);
+    int AddUser(string userName, string email);
+    bool EmailExists(string email);
+    bool UserExists(int userId);
+    UserWithTasksDto? GetUserWithTasks(int userId);
 
-        public List<User> GetAllUsers();
-
-        public User? GetUserById(int UserId);
-        public void AddUser();
-        public User? GetUserWithTasks(int UserId);
-
-
-
-
-
-
-    }
 }

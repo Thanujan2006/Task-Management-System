@@ -1,7 +1,6 @@
-﻿namespace Task_Management_System.DTOs
+﻿namespace TaskManagementApi.DTOs;
+
+public class ChangeStatusDto
 {
-    public class ChangeStatusDto
-    {
-        public string Status { get; set; }
-    }
+    public string Status { get; set; } = string.Empty;
 }

@@ -1,8 +1,7 @@
-﻿namespace Task_Management_System.DTOs
+﻿namespace TaskManagementApi.DTOs;
+
+public class CreateUserDto
 {
-    public class CreateUserDto
-    {
-        public string UserName { get; set; }
-        public string Email { get; set; }
-    }
+    public string UserName { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
 }

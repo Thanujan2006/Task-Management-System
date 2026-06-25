@@ -5,6 +5,31 @@
     <title></title>
 </head>
 <body>
+    <h1>Edit Task</h1>
+
+  
+    <form id="taskForm">
+        <div>
+            <label for="title">Task Title</label>
+            <input type="text" id="title" name="title" required>
+        </div>
+        <div>
+            <label for="user">Assign To</label>
+            <select id="user" name="user" required>
+                <option value="">Loading users...</option>
+            </select>
+        </div>
+        <div>
+            <label for="status">Status</label>
+            <select id="status" name="status" required>
+                <option value="Todo">Todo</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Done">Done</option>
+            </select>
+        </div>
+        <button type="submit">Update Task</button>
+    </form>
+
 
 </body>
 </html>

@@ -1,153 +1,210 @@
-﻿using Microsoft.Data.SqlClient;
-using System.Security.Cryptography.X509Certificates;
-using System.Xml.Linq;
-using Task_Management_System.Models;
+﻿    using Microsoft.Data.SqlClient;
+    using System.Data;
+    using TaskManagementApi.DTOs;
+    using TaskManagementApi.Models;
 
-namespace Task_Management_System.Repositories
-{
+    namespace TaskManagementApi.Repositories;
+
     public class UserRepository : IUserRepository
-
     {
-
-        private readonly string _connectionstring;
-
-        public object Email { get; private set; }
-        public object Name { get; private set; }
-        public object UserId { get; private set; }
+        private readonly string _connectionString;
 
         public UserRepository(IConfiguration configuration)
         {
-            _connectionstring = configuration.GetConnectionString("default");
+            _connectionString = configuration.GetConnectionString("DefaultConnection");
+        }
+
+        private SqlConnection CreateConnection()
+        {
+            var connection = new SqlConnection(_connectionString);
+            connection.Open();
+            return connection;
         }
 
         public List<User> GetAllUsers()
         {
-            List<User> users = new List<User>();
-            SqlConnection connect = new SqlConnection(_connectionstring);
-            connect.Open();
-            string Quary = "SELECT * FROM Users";
-            SqlCommand command = new SqlCommand(Quary, connect);
-            SqlDataReader reader = command.ExecuteReader();
+            var users = new List<User>();
+
+            const string sql = @"
+                SELECT UserId, UserName, Email
+                FROM Users
+                ORDER BY UserName";
+
+            using var connection = CreateConnection();
+            using var cmd = new SqlCommand(sql, connection);
+            using var reader = cmd.ExecuteReader();
             while (reader.Read())
             {
-                User user = new User()
+                users.Add(new User
                 {
-
-                    UserId = (int)reader["UserId"],
-                    UserName = (string)reader["Name"],
-                    Email = (string)reader["Email"]
-
-
-
-                };
-                users.Add(user);
-
-
+                    UserId = reader.GetInt32(0),
+                    UserName = reader.GetString(1),
+                    Email = reader.GetString(2)
+                });
             }
-            return users;
+            {
+
+
+                return users;
+            }
         }
 
-
-
-        public User? GetUserById(int UserId)
+        public User? GetUserById(int userId)
         {
-            User user1 = null;
-            SqlConnection connect = new SqlConnection(_connectionstring);
-            connect.Open();
-            string Quary = "SELECT UserId,UserName,Email FROM Users WHERE UserId=@UserId";
-            SqlCommand command = new SqlCommand(Quary, connect);
-            SqlDataReader reader = command.ExecuteReader();
+            const string sql = @"
+                SELECT UserId, UserName, Email
+                FROM Users
+                WHERE UserId = @UserId";
+
+            using var connection = CreateConnection();
+            using var cmd = new SqlCommand(sql, connection);
+
+            cmd.Parameters.Add("@UserId", SqlDbType.Int).Value = userId;
+
+            using var reader = cmd.ExecuteReader();
             while (reader.Read())
             {
-                User user = new User()
+                return new User
                 {
-
-                    UserId = (int)reader["UserId"],
-                    UserName = (string)reader["Name"],
-                    Email = (string)reader["Email"]
-
-
-
+                    UserId = reader.GetInt32(0),
+                    UserName = reader.GetString(1),
+                    Email = reader.GetString(2)
                 };
             }
-            return user1;
+
+
+            return null;
         }
 
-
-        public void AddUser()
+        public int AddUser(string userName, string email)
         {
+            const string sql = @"
+                INSERT INTO Users (UserName, Email)
+                OUTPUT INSERTED.UserId
+                VALUES (@UserName, @Email)";
 
-            using SqlConnection connect = new SqlConnection(_connectionstring);
-            connect.Open();
+            using var connection = CreateConnection();
+            using var cmd = new SqlCommand(sql, connection);
 
-            string query = @"INSERT INTO Users
-                     (UserId, Name, Email)
-                     VALUES
-                     (@UserId, @Name, @Email)";
+            cmd.Parameters.Add("@UserName", SqlDbType.NVarChar, 100).Value = userName;
+            cmd.Parameters.Add("@Email", SqlDbType.NVarChar, 100).Value = email;
 
-            SqlCommand command = new SqlCommand(query, connect);
+            var result = cmd.ExecuteScalar();
 
-            command.Parameters.AddWithValue("@UserId", UserId);
-            command.Parameters.AddWithValue(" @Name", Name);
-            command.Parameters.AddWithValue(" @Email", Email);
-            command.ExecuteNonQuery();
-
+            return Convert.ToInt32(result);
         }
 
-        public User? GetUserWithTasks(int UserId)
+        public bool EmailExists(string email)
         {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Users
+                WHERE Email = @Email";
 
-            User user1 = null;
-            SqlConnection connect = new SqlConnection(_connectionstring);
-            connect.Open();
-            string Quary = @"SELECT UserId,UserName,Email FROM Users WHERE INNER JOIN TaskItem" +
-                "ON User.UserId=TaskItem.UserId";
-            SqlCommand command = new SqlCommand(Quary, connect);
-            command.Parameters.AddWithValue("@UserId", UserId);
-            command.Parameters.AddWithValue(" @Name", Name);
-            command.Parameters.AddWithValue(" @Email", Email);
-            SqlDataReader reader = command.ExecuteReader();
+            using var connection = CreateConnection();
+            using var cmd = new SqlCommand(sql, connection);
+
+            cmd.Parameters.Add("@Email", SqlDbType.NVarChar, 100).Value = email;
+
+            int count = Convert.ToInt32(cmd.ExecuteScalar());
+
+            return count > 0;
+        }
+
+        public bool UserExists(int userId)
+        {
+            const string sql = @"
+                SELECT COUNT(1)
+                FROM Users
+                WHERE UserId = @UserId";
+
+            using var connection = CreateConnection();
+            using var cmd = new SqlCommand(sql, connection);
+
+            cmd.Parameters.Add("@UserId", SqlDbType.Int).Value = userId;
+
+            int count = Convert.ToInt32(cmd.ExecuteScalar());
+
+            return count > 0;
+        }
+
+        public UserWithTasksDto? GetUserWithTasks(int userId)
+        {
+            const string sql = @"
+                SELECT
+                    u.UserId,
+                    u.UserName,
+                    u.Email,
+                    t.TaskId,
+                    t.Title,
+                    t.Description,
+                    t.Status,
+                    t.CreatedDate,
+                    t.UserId AS TaskUserId
+                FROM Users u
+                LEFT JOIN TaskItem t
+                    ON u.UserId = t.UserId
+                WHERE u.UserId = @UserId
+                ORDER BY t.CreatedDate DESC";
+
+            using var connection = CreateConnection();
+            using var cmd = new SqlCommand(sql, connection);
+
+            cmd.Parameters.Add("@UserId", SqlDbType.Int).Value = userId;
+
+            using var reader = cmd.ExecuteReader();
+
+            UserWithTasksDto? result = null;
+
             while (reader.Read())
             {
-                User user = new User()
+                if (result == null)
                 {
+                    result = new UserWithTasksDto
+                    {
+                        UserId = reader.GetInt32(reader.GetOrdinal("UserId")),
+                        UserName = reader.GetString(reader.GetOrdinal("UserName")),
+                        Email = reader.GetString(reader.GetOrdinal("Email"))
+                    };
+                }
 
-                    UserId = (int)reader["UserId"],
-                    UserName = (string)reader["Name"],
-                    Email = (string)reader["Email"]
-
-
-
-                };
+                if (!reader.IsDBNull(reader.GetOrdinal("TaskId")))
+                {
+                    result.TaskItem.Add(new TaskItemResponseDto
+                    {
+                        TaskId = reader.GetInt32(reader.GetOrdinal("TaskId")),
+                        Title = reader.GetString(reader.GetOrdinal("Title")),
+                        Description = reader.IsDBNull(reader.GetOrdinal("Description"))
+                            ? null
+                            : reader.GetString(reader.GetOrdinal("Description")),
+                        Status = reader.GetString(reader.GetOrdinal("Status")),
+                        CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
+                        UserId = reader.GetInt32(reader.GetOrdinal("TaskUserId")),
+                        UserName = result.UserName
+                    });
+                }
             }
-            return user1;
+
+            return result;
         }
 
+        //public void AddUser()
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //List<User> IUserRepository.GetAllUsers()
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //User? IUserRepository.GetUserById(int userId)
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //UserWithTasksDto? IUserRepository.GetUserWithTasks(int userId)
+        //{
+        //    throw new NotImplementedException();
+        //}
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-

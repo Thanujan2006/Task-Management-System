@@ -1,203 +1,203 @@
 ﻿using Microsoft.Data.SqlClient;
-using System.Security.Cryptography.X509Certificates;
-using System.Xml.Linq;
-using Task_Management_System.Models;
+using TaskManagementApi.DTOs;
 
-namespace Task_Management_System.Repositories
+namespace TaskManagementApi.Repositories;
+
+public class TaskRepository : ITaskRepository
 {
-    public class TaskRepository : ITaskRepository
+    private readonly string _connectionString;
 
+    private const string SelectTaskWithUserSql = @"
+    SELECT t.TaskId, t.Title, t.Description, t.Status, t.CreatedDate,
+           t.UserId, u.UserName
+    FROM TaskItem t
+    INNER JOIN Users u ON t.UserId = u.UserId";
+
+    public TaskRepository(IConfiguration configuration)
     {
-        private readonly string _connectionString;
-        public TaskRepository(IConfiguration configuration)
-        {
-            _connectionString = configuration.GetConnectionString("default");
-        }
-
-
-        public List<TaskItem> GetAllTasks()
-        {
-            List<TaskItem> task1 = new List<TaskItem>();
-            using SqlConnection conn = new SqlConnection(_connectionString);
-            conn.Open();
-            string quary = "SELECT * FROM TaskItem";
-            SqlCommand cmd = new SqlCommand(quary, conn);
-            SqlDataReader reader = cmd.ExecuteReader();
-            while (reader.Read())
-            {
-
-                TaskItem item = new TaskItem()
-                {
-                    TaskId = (int)reader["TaskId"],
-                    Title = (string)reader["Title"],
-                    Description = (string)reader["Description"],
-                    Status = (string)reader["Status"],
-                };
-                task1.Add(item);
-
-
-
-            }
-            return task1;
-        }
-        public TaskItem GetTaskById(int TaskId)
-        {
-            TaskItem task1 = null;
-            using SqlConnection conn = new SqlConnection(_connectionString);
-            conn.Open();
-            string quary = "SELECT * FROM TaskItem WHERE TaskId=@TaskId ";
-            SqlCommand cmd = new SqlCommand(quary, conn);
-            cmd.Parameters.AddWithValue("@TaskId", TaskId);
-            SqlDataReader reader = cmd.ExecuteReader();
-            while (reader.Read())
-            {
-
-                TaskItem item = new TaskItem()
-                {
-                    TaskId = (int)reader["TaskId"],
-                    Title = (string)reader["Title"],
-                    Description = (string)reader["Description"],
-                    Status = (string)reader["Status"],
-                };
-
-
-
-
-            }
-            return task1;
-        }
-
-
-        public TaskItem SearchTasks(string Title)
-        {
-            TaskItem task1 = null;
-            using SqlConnection conn = new SqlConnection(_connectionString);
-            conn.Open();
-            string quary = "SELECT Title FROM TaskItem WHERE Title LIKE 'L%' OR Title LIKE 'U%'OR Title LIKE 'C%' OR Title LIKE 'B%' ";
-            SqlCommand cmd = new SqlCommand(quary, conn);
-
-            SqlDataReader reader = cmd.ExecuteReader();
-            while (reader.Read())
-            {
-
-                TaskItem item = new TaskItem()
-                {
-
-                    Title = (string)reader["Title"]
-
-                };
-
-            }
-            return task1;
-
-        }
-
-        public List<TaskItem> AddTask(int TaskId, string Title,string Description, string Status,int UserId)
-        {
-            List<TaskItem> task1 = new List<TaskItem>();
-            using SqlConnection conn = new SqlConnection(_connectionString);
-            conn.Open();
-            string quary = "INSERT INTO (TaskId,Title,Description,Status,UserId)VALUES( @TaskId,@Title,@Description,@Status,@UserId)";
-
-
-
-            SqlCommand cmd = new SqlCommand(quary, conn);
-            cmd.Parameters.AddWithValue("@TaskId", TaskId);
-            cmd.Parameters.AddWithValue("@Title", Title);
-            cmd.Parameters.AddWithValue("@Description", Description);
-            cmd.Parameters.AddWithValue("@Status", Status);
-            cmd.Parameters.AddWithValue("@UserId", UserId);
-
-            SqlDataReader reader = cmd.ExecuteReader();
-            while (reader.Read())
-            {
-
-                TaskItem item = new TaskItem()
-                {
-                    TaskId = (int)reader["TaskId"],
-                    Title = (string)reader["Title"],
-                    Description = (string)reader["Description"],
-                    Status = (string)reader["Status"],
-                };
-                task1.Add(item);
-
-            }
-            return task1;
-
-
-
-        }
-        public List<TaskItem> UpdateTask(int TaskId, string Title, string Description, string Status, int UserId)
-        {
-            List<TaskItem> task1 = new List<TaskItem>();
-            using SqlConnection conn = new SqlConnection(_connectionString);
-            conn.Open();
-            string quary = "UPDATE SET TaskId=@TaskId,Title=@Title,Description=@Description,Status=@Status,UserId=@UserId FROM TaskItem";
-
-
-
-            SqlCommand cmd = new SqlCommand(quary, conn);
-            cmd.Parameters.AddWithValue("@TaskId", TaskId);
-            cmd.Parameters.AddWithValue("@Title", Title);
-            cmd.Parameters.AddWithValue("@Description", Description);
-            cmd.Parameters.AddWithValue("@Status", Status);
-            cmd.Parameters.AddWithValue("@UserId", UserId);
-
-            SqlDataReader reader = cmd.ExecuteReader();
-            while (reader.Read())
-            {
-
-                TaskItem item = new TaskItem()
-                {
-                    TaskId = (int)reader["TaskId"],
-                    Title = (string)reader["Title"],
-                    Description = (string)reader["Description"],
-                    Status = (string)reader["Status"],
-                };
-                task1.Add(item);
-
-            }
-            return task1;
-
-
-
-
-        }
-
-
-        public bool ChangeStatus(string Status ,int TaskId)
-        {
-            TaskItem task1 = null;
-            using SqlConnection conn = new SqlConnection(_connectionString);
-            conn.Open();
-            string quary = "UPDATE SET Status=@Status FROM TaskItem WHERE TaskId=@TaskId";
-            SqlCommand cmd = new SqlCommand(quary, conn);
-            cmd.Parameters.AddWithValue("@Status", Status);
-            cmd.Parameters.AddWithValue("@TaskId", TaskId);
-            cmd.ExecuteNonQuery();
-            return true;
-          
-        }
-
-
-
-        public void DeleteTask(string Status,int TaskId)
-        {
-            using SqlConnection conn = new SqlConnection(_connectionString);
-            conn.Open();
-            string quary = " DELETE Status=@Status FROM TaskItem WHERE TaskId=@TaskId";
-            SqlCommand cmd = new SqlCommand(quary, conn);
-            cmd.Parameters.AddWithValue("@Status", Status);
-            cmd.Parameters.AddWithValue("@TaskId", TaskId);
-            cmd.ExecuteNonQuery();
-
-
-
-        }
-
-        TaskItem ITaskRepository.ChangeStatus(string Status, int TaskId)
-        {
-            throw new NotImplementedException();
-        }
+        _connectionString = configuration.GetConnectionString("DefaultConnection")
+            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
     }
+
+    public List<TaskItemResponseDto> GetAllTasks()
+    {
+        var sql = SelectTaskWithUserSql + " ORDER BY t.CreatedDate DESC";
+        return ExecuteTaskListQuery(sql);
+    }
+
+    public TaskItemResponseDto? GetTaskById(int taskId)
+    {
+        var sql = SelectTaskWithUserSql + " WHERE t.TaskId = @TaskId";
+
+        SqlConnection connection = new SqlConnection(_connectionString);
+        SqlCommand cmd = new SqlCommand(sql, connection);
+        cmd.Parameters.AddWithValue("@TaskId", taskId);
+        connection.Open();
+        SqlDataReader reader = cmd.ExecuteReader();
+
+        if (reader.Read())
+        {
+            return MapTask(reader);
+        }
+
+        return null;
+    }
+
+    public List<TaskItemResponseDto> SearchTasks(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return GetAllTasks();
+        }
+
+        var sql = SelectTaskWithUserSql + " WHERE t.Title LIKE @Name ORDER BY t.CreatedDate DESC";
+
+        SqlConnection connection = new SqlConnection(_connectionString);
+        SqlCommand cmd = new SqlCommand(sql, connection);
+        cmd.Parameters.AddWithValue("@Name", "%" + name + "%");
+        connection.Open();
+        SqlDataReader reader = cmd.ExecuteReader();
+
+        var tasks = new List<TaskItemResponseDto>();
+        while (reader.Read())
+        {
+            tasks.Add(MapTask(reader));
+        }
+
+        return tasks;
+    }
+
+    public int AddTask(string title, string? description, string status)
+    {
+        const string sql = @"
+            INSERT INTO TaskItem (Title, Description, Status, UserId)
+            OUTPUT INSERTED.TaskId
+            VALUES (@Title, @Description, @Status, @TaskId)";
+
+        SqlConnection connection = new SqlConnection(_connectionString);
+        SqlCommand  cmd = new SqlCommand(sql, connection);
+        cmd.Parameters.AddWithValue("@Title", title);
+        cmd.Parameters.AddWithValue("@Description", (object?)description ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@Status", status);
+      
+        connection.Open();
+
+        var result = cmd.ExecuteScalar();
+        return Convert.ToInt32(result);
+    }
+
+    public bool UpdateTask(int taskId, string title, string? description, string status, int userId)
+    {
+        const string sql = @"
+            UPDATE TaskItem
+            SET Title = @Title, Description = @Description, Status = @Status, UserId = @UserId
+            WHERE TaskId = @TaskId";
+
+        using var connection = new SqlConnection(_connectionString);
+        using var cmd = new SqlCommand(sql, connection);
+        cmd.Parameters.AddWithValue("@TaskId", taskId);
+        cmd.Parameters.AddWithValue("@Title", title);
+        cmd.Parameters.AddWithValue("@Description", (object?)description ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@Status", status);
+        cmd.Parameters.AddWithValue("@UserId", userId);
+        connection.Open();
+
+        var rows = cmd.ExecuteNonQuery();
+        return rows > 0;
+    }
+
+    public bool ChangeStatus(int taskId, string status)
+    {
+        const string sql = "UPDATE TaskItem SET Status = @Status WHERE TaskId = @TaskId";
+
+        using var connection = new SqlConnection(_connectionString);
+        using var cmd = new SqlCommand(sql, connection);
+        cmd.Parameters.AddWithValue("@TaskId", taskId);
+        cmd.Parameters.AddWithValue("@Status", status);
+        connection.Open();
+
+        var rows = cmd.ExecuteNonQuery();
+        return rows > 0;
+    }
+
+    public bool DeleteTask(int taskId)
+    {
+        const string sql = "DELETE FROM TaskItem WHERE TaskId = @TaskId";
+
+        using var connection = new SqlConnection(_connectionString);
+        using var cmd = new SqlCommand(sql, connection);
+        cmd.Parameters.AddWithValue("@TaskId", taskId);
+        connection.Open();
+
+        var rows = cmd.ExecuteNonQuery();
+        return rows > 0;
+    }
+
+    public bool TaskExists(int taskId)
+    {
+        const string sql = "SELECT COUNT(1) FROM TaskItem WHERE TaskId = @TaskId";
+
+        using var connection = new SqlConnection(_connectionString);
+        using var cmd = new SqlCommand(sql, connection);
+        cmd.Parameters.AddWithValue("@TaskId", taskId);
+        connection.Open();
+
+        var count = (int)(cmd.ExecuteScalar() ?? 0);
+        return count > 0;
+    }
+
+    public List<TaskItemResponseDto> ExecuteTaskListQuery(string sql)
+    {
+
+        List<TaskItemResponseDto> tasks = new List<TaskItemResponseDto>();
+        SqlConnection connection = new SqlConnection(_connectionString);
+        SqlCommand cmd = new SqlCommand(sql, connection);
+        connection.Open();
+        var reader = cmd.ExecuteReader();
+
+        while (reader.Read())
+        {
+            tasks.Add(MapTask(reader));
+        }
+
+        return tasks;
+    }
+
+    private static TaskItemResponseDto MapTask(SqlDataReader reader)
+    {
+        return new TaskItemResponseDto
+        {
+            TaskId = reader.GetInt32(reader.GetOrdinal("TaskId")),
+            Title = reader.GetString(reader.GetOrdinal("Title")),
+            Description = reader.IsDBNull(reader.GetOrdinal("Description"))
+                ? null
+                : reader.GetString(reader.GetOrdinal("Description")),
+            Status = reader.GetString(reader.GetOrdinal("Status")),
+            CreatedDate = reader.GetDateTime(reader.GetOrdinal("CreatedDate")),
+            UserId = reader.GetInt32(reader.GetOrdinal("UserId")),
+            UserName = reader.GetString(reader.GetOrdinal("UserName"))
+        };
+    }
+
+    public int AddTask(string title, string? description, string status, int userId)
+    {
+        throw new NotImplementedException();
+    }
+
+
+
+    //List<TaskItemResponseDto> ITaskRepository.GetAllTasks()
+    //{
+    //    throw new NotImplementedException();
+    ////}
+
+    //TaskItemResponseDto? ITaskRepository.GetTaskById(int taskId)
+    //{
+    //    throw new NotImplementedException();
+    //}
+
+    //List<TaskItemResponseDto> ITaskRepository.SearchTasks(string name)
+    //{
+    //    throw new NotImplementedException();
+    //}
 }

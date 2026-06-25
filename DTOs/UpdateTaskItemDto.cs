@@ -1,10 +1,9 @@
-﻿namespace Task_Management_System.DTOs
+﻿namespace TaskManagementApi.DTOs;
+
+public class UpdateTaskItemDto
 {
-    public class UpdateTaskItemDto
-    {
-        public string Title { get; set; }
-        public string Description { get; set; }
-        public string Status { get; set; }
-        public int UserId { get; set; }
-    }
+    public string Title { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public int UserId { get; set; }
 }

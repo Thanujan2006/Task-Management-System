@@ -1,14 +1,11 @@
-﻿namespace Task_Management_System.Models
+﻿namespace TaskManagementApi.Models;
+
+public class TaskItem
 {
-    public class TaskItem
-    {
-
-        public int TaskId {  get; set; }
-        public string Title {  get; set; }
-        public string Description {  get; set; }
-        public string Status {  get; set; }
-
-        public DateTime CreatedDate; 
-        public int UserId {  get; set; }
-    }
+    public int TaskId { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public string Status { get; set; } = "Todo";
+    public DateTime CreatedDate { get; set; }
+    public int UserId { get; set; }
 }

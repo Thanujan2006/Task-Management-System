@@ -1,11 +1,9 @@
-﻿namespace Task_Management_System.DTOs
-{
-    public class UserWithTasksDto
-    {
-        public int UserId { get; set; }
-        public string UserName { get; set; }
-        public string Email { get; set; }
+﻿namespace TaskManagementApi.DTOs;
 
-        public List<TaskItemResponseDto> Tasks { get; set; }
-    }
+public class UserWithTasksDto
+{
+    public int UserId { get; set; }
+    public string UserName { get; set; }
+    public string Email { get; set; }
+    public List<TaskItemResponseDto> TaskItem { get; set; }
 }

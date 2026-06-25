@@ -1,19 +1,16 @@
-﻿using Task_Management_System.Models;
+﻿using TaskManagementApi.DTOs;
 
-namespace Task_Management_System.Repositories
+namespace TaskManagementApi.Repositories;
+
+public interface ITaskRepository
 {
-    public interface ITaskRepository
-    {
-
-        public List<TaskItem> GetAllTasks();
-        public TaskItem GetTaskById(int taskId);
-
-        public TaskItem SearchTasks(string Title);
-        public List<TaskItem> AddTask(int TaskId, string Title, string Description, string Status, int UserId);
-        public List<TaskItem> UpdateTask(int TaskId, string Title, string Description, string Status, int UserId);
-        public TaskItem ChangeStatus(string Status, int TaskId);
-        public void DeleteTask(string Status, int TaskId);
-
-
-    }
+    List<TaskItemResponseDto> GetAllTasks();
+    TaskItemResponseDto? GetTaskById(int taskId);
+    List<TaskItemResponseDto> SearchTasks(string name);
+    int AddTask(string title, string? description, string status, int userId);
+    bool UpdateTask(int taskId, string title, string? description, string status, int userId);
+    bool ChangeStatus(int taskId, string status);
+    bool DeleteTask(int taskId);
+    bool TaskExists(int taskId);
+    int AddTask(string v1, string? v2, string v3);
 }
