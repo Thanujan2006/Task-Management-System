@@ -4,6 +4,122 @@
     <meta charset="utf-8" />
     <title></title>
 </head>
+<style>
+    /* General page styling */
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #f4f6f9;
+        margin: 0;
+        padding: 20px;
+        color: #333;
+    }
+
+    /* Page title */
+    h1 {
+        text-align: center;
+        color: #2c3e50;
+        margin-bottom: 20px;
+        font-size: 2.2rem;
+    }
+
+    /* Search box styling */
+    .search-box {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 20px;
+    }
+
+        .search-box input {
+            width: 50%;
+            padding: 10px 15px;
+            border: 1px solid #ccc;
+            border-radius: 25px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+            .search-box input:focus {
+                border-color: #3498db;
+                box-shadow: 0 0 8px rgba(52, 152, 219, 0.3);
+                outline: none;
+            }
+
+    /* Table styling */
+    #taskTable {
+        width: 100%;
+        border-collapse: collapse;
+        background: #fff;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+        #taskTable thead {
+            background: #3498db;
+            color: #fff;
+        }
+
+        #taskTable th, #taskTable td {
+            padding: 12px 15px;
+            text-align: left;
+        }
+
+        #taskTable tbody tr {
+            border-bottom: 1px solid #eee;
+            transition: background 0.2s ease;
+        }
+
+            #taskTable tbody tr:hover {
+                background: #f9f9f9;
+            }
+
+    /* Status badge styling */
+    .status {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #fff;
+    }
+
+        .status.completed {
+            background: #2ecc71;
+        }
+
+        .status.pending {
+            background: #f39c12;
+        }
+
+        .status.in-progress {
+            background: #e74c3c;
+        }
+
+    /* Action buttons */
+    .actions button {
+        padding: 6px 12px;
+        margin-right: 5px;
+        border: none;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+
+        .actions button.edit {
+            background: #3498db;
+            color: #fff;
+        }
+
+        .actions button.delete {
+            background: #e74c3c;
+            color: #fff;
+        }
+
+        .actions button:hover {
+            opacity: 0.85;
+        }
+
+</style>
 <body>
 
     <h1>All Tasks</h1>
