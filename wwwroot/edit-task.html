@@ -6,7 +6,7 @@
 
 </head>
 <style>
-    * {
+    * 
         *
 
     {
@@ -178,6 +178,96 @@
         <button type="submit">Update Task</button>
     </form>
 
+    <script>const API_URL = "https://localhost:7298/api"; 
 
+        const taskForm = document.getElementById("taskForm");
+        const title = document.getElementById("title");
+        const status = document.getElementById("status");
+        const user = document.getElementById("user");
+
+        // Get task id from URL
+        const params = new URLSearchParams(window.location.search);
+        const taskId = params.get("id");
+
+        // Load users
+        async function loadUsers() {
+            try {
+                const response = await fetch(`${API_URL}/Users`);
+                const result = await response.json();
+
+                user.innerHTML = "";
+
+                result.data.forEach(u => {
+                    user.innerHTML += `
+                <option value="${u.id}">
+                    ${u.name}
+                </option>`;
+                });
+
+            } catch (err) {
+                console.log(err);
+            }
+        }
+
+        // Load task details
+        async function loadTask() {
+            try {
+                const response = await fetch(`${API_URL}/Tasks/${TaskId}`);
+                const result = await response.json();
+
+                const task = result.data;
+
+                Title.value = task.Title;
+                Status.value = task.Status;
+                User.value = task.UserId;
+
+            } catch (err) {
+                console.log(err);
+            }
+        }
+
+        // Update task
+        taskForm.addEventListener("submit", async function (e) {
+
+            e.preventDefault();
+
+            const task = {
+                title: title.value,
+                userId: parseInt(user.value),
+                status: status.value
+            };
+
+            try {
+
+                const response = await fetch(`${API_URL}/Tasks/${taskId}`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(task)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert("Task updated successfully.");
+                    window.location.href = "tasks.html";
+                }
+                else {
+                    alert(result.message);
+                }
+
+            } catch (err) {
+                console.log(err);
+            }
+
+        });
+
+        async function init() {
+            await loadUsers();
+            await loadTask();
+        }
+
+        init();</script>
 </body>
 </html>

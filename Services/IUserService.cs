@@ -10,3 +10,4 @@ public interface IUserService
     ApiResponse<User> AddUser(CreateUserDto dto);
     ApiResponse<UserWithTasksDto> GetUserWithTasks(int id);
 }
+

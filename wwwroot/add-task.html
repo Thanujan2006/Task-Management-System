@@ -128,7 +128,7 @@
             <li><a href="user-detail.html">UserDeatail</a></li>
             <li>  <a href="users.html">Users</a></li>
         </ul>
-        
+
 
     </nav>
 
@@ -141,8 +141,9 @@
         </div>
         <div>
             <label for="user">Assign To</label>
-            <select id="user" name="user" required>
+            <select id="User" name="User" required>
                 <option value="">Loading users...</option>
+           
             </select>
         </div>
         <div>
@@ -156,6 +157,83 @@
         <button type="submit">Create Task</button>
     </form>
 
+  
+        <script>
+            const API_BASE = "https://localhost:7298/api";
+
+            // Load users when page loads
+            async function loadUsers() {
+            try {
+                const response = await fetch(`${API_BASE}/users`);
+            const result = await response.json();
+
+            const userSelect = document.getElementById("User");
+            userSelect.innerHTML = "";
+
+                if (result.success && result.data.length > 0) {
+
+                userSelect.innerHTML = '<option value="">Select User</option>';
+
+                    result.data.forEach(user => {
+                        const option = document.createElement("option");
+            option.value = user.userId;
+            option.textContent = user.userName;
+            userSelect.appendChild(option);
+                    });
+
+                } else {
+                userSelect.innerHTML =
+                '<option value="">No users found</option>';
+                }
+
+            } catch (error) {
+                console.error(error);
+            alert("Failed to load users.");
+            }
+        }
+
+            loadUsers();
+
+            / Submit form
+            document.getElementById("taskForm").addEventListener("submit", async function (e) {
+
+                e.preventDefault();
+
+            const task = {
+                title: document.getElementById("title").value,
+            userId: parseInt(document.getElementById("User").value),
+            status: document.getElementById("status").value
+            };
+
+            try {
+
+                const response = await fetch(`${API_BASE}/tasks`, {
+                method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+                    },
+            body: JSON.stringify(task)
+                });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert("Task created successfully!");
+
+            document.getElementById("taskForm").reset();
+                }
+            else {
+                alert(result.message);
+                }
+
+            } catch (error) {
+                console.error(error);
+            alert("Error creating task.");
+            }
+
+        });
+    </script>
+      
 
 
 

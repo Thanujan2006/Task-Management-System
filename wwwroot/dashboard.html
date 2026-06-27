@@ -113,12 +113,6 @@
 
 
 
- 
-
-
-
-
-
 
 </style>
 <body>
@@ -150,6 +144,45 @@
                 <div class="count" id="doneCount">0</div>
             </div>
         </div>
+    <script>const API_URL = "https://localhost:7298/api/tasks"; 
+
+        document.addEventListener("DOMContentLoaded", loadDashboard);
+
+        async function loadDashboard() {
+            try {
+                const response = await fetch(API_URL);
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch tasks");
+                }
+
+                const result = await response.json();
+
+ 
+                const tasks = result.data || result.Data || [];
+
+                updateDashboard(tasks);
+
+            } catch (error) {
+                console.error(error);
+                alert("Unable to load dashboard");
+            }
+        }
+
+        function updateDashboard(tasks) {
+
+            document.getElementById("totalCount").textContent = tasks.length;
+
+            const todo = tasks.filter(t => t.status === "Todo").length;
+
+            const inProgress = tasks.filter(t => t.status === "In Progress").length;
+
+            const done = tasks.filter(t => t.status === "Done").length;
+
+            document.getElementById("todoCount").textContent = todo;
+            document.getElementById("inProgressCount").textContent = inProgress;
+            document.getElementById("doneCount").textContent = done;
+        }</script>
 
 </body>
 </html>

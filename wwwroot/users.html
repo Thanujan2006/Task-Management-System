@@ -190,16 +190,107 @@
 
     <table id="userTable">
         <thead>
-            <tr>
+            <tr> 
                 <th>Name</th>
                 <th>Email</th>
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
-           
         </tbody>
     </table>
+    <script >const API_URL = "https://localhost:7298/api/users"; // Change port if needed
 
+        const form = document.getElementById("userForm");
+        const tbody = document.querySelector("#userTable tbody");
+
+        window.onload = () => {
+            loadUsers();
+        };
+
+        // Load all users
+        async function loadUsers() {
+
+            try {
+
+                const response = await fetch(API_URL);
+                const result = await response.json();
+
+                if (result.success) {
+                    displayUsers(result.data);
+                }
+                else {
+                    alert(result.message);
+                }
+
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Display users in table
+        function displayUsers(users) {
+
+            tbody.innerHTML = "";
+
+            users.forEach(user => {
+
+                tbody.innerHTML += `
+            <tr>
+                <td>${user.name}</td>
+                <td>${user.email}</td>
+                <td class="actions">
+                    <button class="edit" onclick="viewTasks(${user.userId})">
+                        View Tasks
+                    </button>
+                </td>
+            </tr>
+        `;
+
+            });
+
+        }
+
+        // Add new user
+        form.addEventListener("submit", async function (e) {
+
+            e.preventDefault();
+
+            const user = {
+                name: document.getElementById("name").value,
+                email: document.getElementById("email").value
+            };
+
+            try {
+
+                const response = await fetch(API_URL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(user)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert("User added successfully.");
+                    form.reset();
+                    loadUsers();
+                }
+                else {
+                    alert(result.message);
+                }
+
+            } catch (err) {
+                console.error(err);
+            }
+
+        });
+
+        // View user tasks
+        function viewTasks(id) {
+            window.location.href = `user-detail.html?id=${id}`;
+        }</script>
 </body>
 </html>

@@ -184,7 +184,7 @@
 
 
     <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Search tasks by title or user..."><button class="button" onclick=" ">🔍︎</button>
+        <input type="text" id="searchInput" placeholder="Search tasks by title or user..."><button class="button" onclick="searchTask()">🔍</button>
     </div>
 
 
@@ -202,6 +202,104 @@
         <tbody>
         </tbody>
     </table>
+  
+        <script>
+            const API_URL = "https://localhost:7298/api/tasks"; // Change to your API URL
 
+            window.onload = function () {
+                loadTasks();
+};
+
+            async function loadTasks() {
+        try {
+            const response = await fetch(API_URL);
+            const result = await response.json();
+
+            if (result.success) {
+                displayTasks(result.data);
+            }
+        } catch (err) {
+                console.log(err);
+        }
+}
+
+            function displayTasks(tasks) {
+        const tbody = document.querySelector("#taskTable tbody");
+            tbody.innerHTML = "";
+
+        tasks.forEach(task => {
+
+                tbody.innerHTML += `
+                <tr>
+                    <td>${task.title}</td>
+                    <td>${task.userName}</td>
+                    <td>
+                        <span class="status ${task.status.toLowerCase()}">
+                            ${task.status}
+                        </span>
+                    </td>
+                    <td class="actions">
+                        <button class="edit" onclick="editTask(${task.id})">Edit</button>
+                        <button class="delete" onclick="deleteTask(${task.id})">Delete</button>
+                    </td>
+                </tr>
+            `;
+        });
+}
+
+            async function searchTask() {
+
+        const keyword = document.getElementById("searchInput").value;
+
+            if (keyword === "") {
+                loadTasks();
+            return;
+        }
+
+            try {
+
+            const response = await fetch(`${API_URL}/search?name=${encodeURIComponent(keyword)}`);
+            const result = await response.json();
+
+            if (result.success) {
+                displayTasks(result.data);
+            }
+
+        } catch (err) {
+                console.log(err);
+        }
+}
+
+            function editTask(id) {
+                window.location.href = `edit-task.html?id=${id}`;
+}
+
+            async function deleteTask(id) {
+
+        if (!confirm("Delete this task?"))
+            return;
+
+            try {
+
+            const response = await fetch(`${API_URL}/${id}`, {
+                method: "DELETE"
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                alert("Task deleted successfully.");
+            loadTasks();
+            } else {
+                alert(result.message);
+            }
+
+        } catch (err) {
+                console.log(err);
+        }
+}
+    </script>
+
+  
 </body>
 </html>
