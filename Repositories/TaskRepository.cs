@@ -67,25 +67,6 @@ public class TaskRepository : ITaskRepository
         return tasks;
     }
 
-    public int AddTask(string title, string? description, string status)
-    {
-        const string sql = @"
-            INSERT INTO TaskItem (Title, Description, Status, UserId)
-            OUTPUT INSERTED.TaskId
-            VALUES (@Title, @Description, @Status, @TaskId)";
-
-        SqlConnection connection = new SqlConnection(_connectionString);
-        SqlCommand  cmd = new SqlCommand(sql, connection);
-        cmd.Parameters.AddWithValue("@Title", title);
-        cmd.Parameters.AddWithValue("@Description", (object?)description ?? DBNull.Value);
-        cmd.Parameters.AddWithValue("@Status", status);
-      
-        connection.Open();
-
-        var result = cmd.ExecuteScalar();
-        return Convert.ToInt32(result);
-    }
-
     public bool UpdateTask(int taskId, string title, string? description, string status, int userId)
     {
         const string sql = @"
@@ -181,23 +162,20 @@ public class TaskRepository : ITaskRepository
 
     public int AddTask(string title, string? description, string status, int userId)
     {
-        throw new NotImplementedException();
+        const string sql = @"
+            INSERT INTO TaskItem (Title, Description, Status, UserId)
+            OUTPUT INSERTED.TaskId
+            VALUES (@Title, @Description, @Status, @UserId)";
+
+        using var connection = new SqlConnection(_connectionString);
+        using var cmd = new SqlCommand(sql, connection);
+        cmd.Parameters.AddWithValue("@Title", title);
+        cmd.Parameters.AddWithValue("@Description", (object?)description ?? DBNull.Value);
+        cmd.Parameters.AddWithValue("@Status", status);
+        cmd.Parameters.AddWithValue("@UserId", userId);
+        connection.Open();
+
+        var result = cmd.ExecuteScalar();
+        return Convert.ToInt32(result);
     }
-
-
-
-    //List<TaskItemResponseDto> ITaskRepository.GetAllTasks()
-    //{
-    //    throw new NotImplementedException();
-    ////}
-
-    //TaskItemResponseDto? ITaskRepository.GetTaskById(int taskId)
-    //{
-    //    throw new NotImplementedException();
-    //}
-
-    //List<TaskItemResponseDto> ITaskRepository.SearchTasks(string name)
-    //{
-    //    throw new NotImplementedException();
-    //}
 }

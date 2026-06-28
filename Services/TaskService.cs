@@ -1,5 +1,4 @@
-﻿using Task_Management_System.DTOs;
-using TaskManagementApi.DTOs;
+﻿using TaskManagementApi.DTOs;
 using TaskManagementApi.Repositories;
 
 namespace TaskManagementApi.Services;
@@ -14,8 +13,6 @@ public class TaskService : ITaskService
     private readonly ITaskRepository _taskRepository;
     private readonly IUserRepository _userRepository;
 
-    public object TaskId { get; private set; }
-
     public TaskService(ITaskRepository taskRepository, IUserRepository userRepository)
     {
         _taskRepository = taskRepository;
@@ -24,7 +21,8 @@ public class TaskService : ITaskService
 
     public ApiResponse<List<TaskItemResponseDto>> GetAllTasks()
     {
-
+        try
+        {
             var tasks = _taskRepository.GetAllTasks();
             return new ApiResponse<List<TaskItemResponseDto>>
             {
@@ -32,7 +30,11 @@ public class TaskService : ITaskService
                 Message = "Tasks retrieved successfully.",
                 Data = tasks
             };
-
+        }
+        catch
+        {
+            return ErrorResponse<List<TaskItemResponseDto>>("An error occurred while retrieving tasks.");
+        }
     }
 
     public ApiResponse<TaskItemResponseDto> GetTaskById(int id)
@@ -83,7 +85,7 @@ public class TaskService : ITaskService
 
     public ApiResponse<TaskItemResponseDto> AddTask(CreateTaskItemDto dto)
     {
-        var errors = ValidateTask(dto.Title, dto.Description, dto.Status, dto.TaskId);
+        var errors = ValidateCreateTask(dto);
         if (errors.Count > 0)
         {
             return new ApiResponse<TaskItemResponseDto>
@@ -100,10 +102,13 @@ public class TaskService : ITaskService
                 dto.Title.Trim(),
                 dto.Description?.Trim(),
                 dto.Status.Trim(),
-                dto.TaskId
-               );
+                dto.UserId);
 
             var task = _taskRepository.GetTaskById(taskId);
+            if (task == null)
+            {
+                return ErrorResponse<TaskItemResponseDto>("An error occurred while creating the task.");
+            }
 
             return new ApiResponse<TaskItemResponseDto>
             {
@@ -118,28 +123,6 @@ public class TaskService : ITaskService
         }
     }
 
-    private List<string> ValidateTask(string title, string description, string status, CreateTaskItemDto dto, object taskId)
-    {
-        throw new NotImplementedException();
-    }
-
-    private List<string> ValidateTask(string title, string description, string status)
-    {
-        var errors = new List<string>();
-
-        if (string.IsNullOrWhiteSpace(title))
-            errors.Add("Title is required.");
-        else if (title.Trim().Length > 200)
-            errors.Add("Title must not exceed 200 characters.");
-
-        if (!string.IsNullOrWhiteSpace(description) && description.Trim().Length > 500)
-            errors.Add("Description is too long.");
-
-        errors.AddRange(ValidateStatus(status));
-
-        return errors;
-    }
-
     public ApiResponse<TaskItemResponseDto> UpdateTask(int id, UpdateTaskItemDto dto)
     {
         if (id <= 0)
@@ -147,7 +130,7 @@ public class TaskService : ITaskService
             return ValidationError<TaskItemResponseDto>("Invalid task ID.");
         }
 
-        var errors = ValidateTask(dto.Title, dto.Description, dto.Status, dto.UserId);
+        var errors = ValidateTaskInput(dto.Title, dto.Description, dto.Status, dto.UserId);
         if (errors.Count > 0)
         {
             return new ApiResponse<TaskItemResponseDto>
@@ -256,7 +239,12 @@ public class TaskService : ITaskService
         }
     }
 
-    private List<string> ValidateTask(string title, string? description, string status, int userId)
+    private List<string> ValidateCreateTask(CreateTaskItemDto dto)
+    {
+        return ValidateTaskInput(dto.Title, dto.Description, dto.Status, dto.UserId);
+    }
+
+    private List<string> ValidateTaskInput(string title, string? description, string status, int userId)
     {
         var errors = new List<string>();
 
@@ -278,7 +266,7 @@ public class TaskService : ITaskService
 
         if (userId <= 0)
         {
-            errors.Add("Selected user does not exist.");
+            errors.Add("UserId is required. Use GET /api/Users to get a valid user ID.");
         }
         else if (!_userRepository.UserExists(userId))
         {
@@ -322,43 +310,4 @@ public class TaskService : ITaskService
         Success = false,
         Message = message
     };
-
-    //ApiResponse<List<TaskItemResponseDto>> ITaskService.GetAllTasks()
-    //{
-    //    throw new NotImplementedException();
-    //}
-
-    //ApiResponse<TaskItemResponseDto> ITaskService.GetTaskById(int id)
-    //{
-    //    throw new NotImplementedException();
-    //}
-
-    //ApiResponse<List<TaskItemResponseDto>> ITaskService.SearchTasks(string name)
-    //{
-    //    throw new NotImplementedException();
-    //}
-
-    //public ApiResponse<TaskItemResponseDto> UpdateTask(int id, UpdateTaskItemDto dto)
-    //{
-    //    throw new NotImplementedException();
-    //}
-
-    //public ApiResponse<TaskItemResponseDto> ChangeStatus(int id, ChangeStatusDto dto)
-    //{
-    //    throw new NotImplementedException();
-    //}
-
-    //ApiResponse<object> ITaskService.DeleteTask(int id)
-    //{
-    //    throw new NotImplementedException();
-    //}
-
-    object? ITaskService.AddTask(CreateTaskItemDto dto)
-    {
-        return AddTask(dto);
-    }
-
-
-
-
 }
