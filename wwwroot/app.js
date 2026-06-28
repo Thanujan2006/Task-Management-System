@@ -136,8 +136,8 @@ async function loadUsers() {
 
         result.data.forEach(u => {
             user.innerHTML += `
-                <option value="${u.id}">
-                    ${u.name}
+                <option value="${u.userId}">
+                    ${u.userName}
                 </option>`;
         });
 
@@ -227,8 +227,8 @@ async function loadUsers() {
 
         result.data.forEach(u => {
             user.innerHTML += `
-                <option value="${u.id}">
-                    ${u.name}
+                <option value="${u.userId}">
+                    ${u.userName}
                 </option>`;
         });
 

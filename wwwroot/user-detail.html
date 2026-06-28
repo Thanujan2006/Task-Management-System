@@ -206,13 +206,13 @@
 
                 const user = result.data;
 
-                document.getElementById("userName").textContent = user.name;
+                document.getElementById("userName").textContent = user.userName;
                 document.getElementById("userEmail").textContent = user.email;
 
                 const tbody = document.querySelector("#taskTable tbody");
                 tbody.innerHTML = "";
 
-                if (!user.tasks || user.tasks.length === 0) {
+                if (!user.taskItem || user.taskItem.length === 0) {
 
                     tbody.innerHTML = `
                     <tr>
@@ -223,7 +223,7 @@
                     return;
                 }
 
-                user.tasks.forEach(task => {
+                user.taskItem.forEach(task => {
 
                     tbody.innerHTML += `
                     <tr>
@@ -451,13 +451,13 @@
 
                 const user = result.data;
 
-                document.getElementById("userName").textContent = user.name;
+                document.getElementById("userName").textContent = user.userName;
                 document.getElementById("userEmail").textContent = user.email;
 
                 const tbody = document.querySelector("#taskTable tbody");
                 tbody.innerHTML = "";
 
-                if (!user.tasks || user.tasks.length === 0) {
+                if (!user.taskItem || user.taskItem.length === 0) {
 
                     tbody.innerHTML = `
                     <tr>
@@ -468,7 +468,7 @@
                     return;
                 }
 
-                user.tasks.forEach(task => {
+                user.taskItem.forEach(task => {
 
                     tbody.innerHTML += `
                     <tr>

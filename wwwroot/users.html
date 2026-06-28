@@ -237,7 +237,7 @@
 
                 tbody.innerHTML += `
             <tr>
-                <td>${user.name}</td>
+                <td>${user.userName}</td>
                 <td>${user.email}</td>
                 <td class="actions">
                     <button class="edit" onclick="viewTasks(${user.userId})">
@@ -257,7 +257,7 @@
             e.preventDefault();
 
             const user = {
-                name: document.getElementById("name").value,
+                userName: document.getElementById("name").value,
                 email: document.getElementById("email").value
             };
 
@@ -279,7 +279,10 @@
                     loadUsers();
                 }
                 else {
-                    alert(result.message);
+                    const message = result.errors?.length
+                        ? result.errors.join("\n")
+                        : result.message;
+                    alert(message);
                 }
 
             } catch (err) {
