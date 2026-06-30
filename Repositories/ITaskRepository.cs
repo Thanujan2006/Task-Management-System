@@ -12,5 +12,4 @@ public interface ITaskRepository
     bool ChangeStatus(int taskId, string status);
     bool DeleteTask(int taskId);
     bool TaskExists(int taskId);
-    int AddTask(string v1, string? v2, string v3);
 }

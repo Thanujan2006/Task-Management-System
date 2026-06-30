@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Task_Management_System.DTOs;
 using TaskManagementApi.DTOs;
 using TaskManagementApi.Services;
 
@@ -19,10 +18,7 @@ public class TasksController : ControllerBase
     [HttpGet]
     public IActionResult GetAllTasks()
     {
-        var result = _taskService.GetAllTasks() as dynamic; // Temporary fix if you don't know the type
-        if (result == null)
-            return StatusCode(500, "Unexpected result type from service.");
-
+        var result = _taskService.GetAllTasks();
         return result.Success ? Ok(result) : StatusCode(500, result);
     }
 
@@ -30,7 +26,6 @@ public class TasksController : ControllerBase
     public IActionResult GetTaskById(int id)
     {
         var result = _taskService.GetTaskById(id);
-
         if (!result.Success)
         {
             return result.Message.Contains("not found", StringComparison.OrdinalIgnoreCase)
@@ -41,14 +36,10 @@ public class TasksController : ControllerBase
         return Ok(result);
     }
 
-
     [HttpGet("search")]
     public IActionResult SearchTasks([FromQuery] string? name)
     {
-        var result = _taskService.SearchTasks(name ?? string.Empty) as dynamic; // Temporary fix
-        if (result == null)
-            return StatusCode(500, "Unexpected result type from service.");
-
+        var result = _taskService.SearchTasks(name ?? string.Empty);
         return result.Success ? Ok(result) : StatusCode(500, result);
     }
 
@@ -56,28 +47,18 @@ public class TasksController : ControllerBase
     public IActionResult AddTask([FromBody] CreateTaskItemDto dto)
     {
         var result = _taskService.AddTask(dto);
-        if (result == null)
-            return StatusCode(500, "Unexpected result type from service.");
+        if (!result.Success)
+        {
+            return BadRequest(result);
+        }
 
-        dynamic dynamicResult = result;
-        if (dynamicResult.Success)
-        {
-            // Assuming the result contains the created task with its ID
-            return CreatedAtAction(nameof(GetTaskById), new { id = dynamicResult.Data.Id }, dynamicResult);
-        }
-        else
-        {
-            return BadRequest(dynamicResult);
-        }
+        return CreatedAtAction(nameof(GetTaskById), new { id = result.Data!.TaskId }, result);
     }
 
     [HttpPut("{id:int}")]
     public IActionResult UpdateTask(int id, [FromBody] UpdateTaskItemDto dto)
     {
-        var result = _taskService.UpdateTask(id, dto) as dynamic; // Temporary fix
-        if (result == null)
-            return StatusCode(500, "Unexpected result type from service.");
-
+        var result = _taskService.UpdateTask(id, dto);
         if (!result.Success)
         {
             return result.Message.Contains("not found", StringComparison.OrdinalIgnoreCase)
@@ -91,10 +72,7 @@ public class TasksController : ControllerBase
     [HttpPut("{id:int}/status")]
     public IActionResult ChangeStatus(int id, [FromBody] ChangeStatusDto dto)
     {
-        var result = _taskService.ChangeStatus(id, dto) as dynamic; // Temporary fix
-        if (result == null)
-            return StatusCode(500, "Unexpected result type from service.");
-
+        var result = _taskService.ChangeStatus(id, dto);
         if (!result.Success)
         {
             return result.Message.Contains("not found", StringComparison.OrdinalIgnoreCase)
@@ -108,10 +86,7 @@ public class TasksController : ControllerBase
     [HttpDelete("{id:int}")]
     public IActionResult DeleteTask(int id)
     {
-        var result = _taskService.DeleteTask(id) as dynamic; // Temporary fix
-        if (result == null)
-            return StatusCode(500, "Unexpected result type from service.");
-
+        var result = _taskService.DeleteTask(id);
         if (!result.Success)
         {
             return result.Message.Contains("not found", StringComparison.OrdinalIgnoreCase)
