@@ -15,8 +15,8 @@ public class TaskRepository : ITaskRepository
 
     public TaskRepository(IConfiguration configuration)
     {
-        _connectionString = configuration.GetConnectionString("DefaultConnection")
-            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+        _connectionString = configuration.GetConnectionString("DefaultConnection");
+            
     }
 
     public List<TaskItemResponseDto> GetAllTasks()
